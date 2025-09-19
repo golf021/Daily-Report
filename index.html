@@ -1,539 +1,524 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บันทึกข้อมูลหน้างานไปยัง Google Drive</title>
-    <style>
-        :root {
-            --primary: #4285F4;
-            --secondary: #34A853;
-            --accent: #FBBC05;
-            --error: #EA4335;
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --text: #202124;
-            --text-secondary: #5f6368;
-            --border: #dadce0;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: 'Sukhumvit Set', 'Kanit', 'Sarabun', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            color: var(--primary);
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text);
-        }
-        
-        input[type="text"], 
-        input[type="number"], 
-        input[type="file"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-        }
-        
-        .row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .row > div {
-            flex: 1;
-        }
-        
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-family: inherit;
-        }
-        
-        button:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            background: #a8c7fa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-ghost {
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--border);
-        }
-        
-        .btn-ghost:hover {
-            background: #f1f3f4;
-        }
-        
-        .btn-success {
-            background: var(--secondary);
-        }
-        
-        .btn-success:hover {
-            background: #2d954a;
-        }
-        
-        .photo-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .photo-thumb {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            transition: transform 0.3s;
-        }
-        
-        .photo-thumb:hover {
-            transform: scale(1.05);
-        }
-        
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            font-weight: 500;
-        }
-        
-        .status.success {
-            background: #e6f4ea;
-            color: #137333;
-            border: 1px solid #b6e3c2;
-            display: block;
-        }
-        
-        .status.error {
-            background: #fce8e6;
-            color: #c5221f;
-            border: 1px solid #f5b5b2;
-            display: block;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .instructions {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 30px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .instructions h3 {
-            margin-top: 0;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .step {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .step:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        code {
-            background: #f1f3f4;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        
-        pre {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-size: 13px;
-            line-height: 1.5;
-            margin: 10px 0;
-        }
-        
-        .url-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .url-container input {
-            flex: 1;
-        }
-        
-        .deployed-info {
-            background: #e6f4ea;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid var(--secondary);
-        }
-        
-        @media (max-width: 600px) {
-            .row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .container {
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .url-container {
-                flex-direction: column;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>แบบบันทึกหน้างาน (มือถือ)</title>
+  <meta name="description" content="ฟอร์มบันทึกหน้างานสำหรับมือถือ — ชื่อลูกค้า, ที่อยู่, โลเคชัน, ไมล์รถ, รูปภาพ" />
+  <style>
+    :root{--bg:#f7f8fb;--card:#ffffff;--accent:#0b76ef;--muted:#666;--error:#e53935}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans',"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:16px;color:#111}
+    .container{max-width:760px;margin:0 auto}
+    h1{font-size:18px;margin:0 0 12px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 2px 8px rgba(16,24,40,0.06);margin-bottom:12px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+    input[type=text], input[type=number], textarea, select{width:100%;padding:10px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
+    input.error{border-color:var(--error)}
+    .error-text{color:var(--error);font-size:12px;margin-top:4px;display:none}
+    .row{display:flex;gap:8px}
+    .row > *{flex:1}
+    .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+    .btn:disabled{opacity:0.6;cursor:not-allowed}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,118,239,0.12)}
+    .small{font-size:13px;padding:8px 10px}
+    .photos-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .photos-preview img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+    .saved-list{list-style:none;padding:0;margin:0}
+    .saved-item{padding:10px;border-bottom:1px solid #f1f3f6}
+    .meta{font-size:12px;color:var(--muted)}
+    footer{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
+    .loading{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 1s linear infinite;margin-right:8px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 16px;border-radius:8px;z-index:1000;opacity:0;transition:opacity 0.3s}
+    .toast.show{opacity:1}
+    .storage-info{font-size:12px;color:var(--muted);margin-top:8px;text-align:right}
+    @media (max-width:420px){body{padding:10px} .row{flex-direction:column}}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>บันทึกข้อมูลหน้างานไปยัง Google Drive</h1>
-        <p class="subtitle">ฟอร์มบันทึกข้อมูลหน้างานพร้อมอัพโหลดรูปภาพไปยัง Google Drive</p>
-        
-        <div class="deployed-info">
-            <h3>✅ การตั้งค่าเรียบร้อยแล้ว</h3>
-            <p>แอปพลิเคชันนี้ได้ถูก deploy เรียบร้อยแล้วและพร้อมใช้งาน</p>
-            <p><strong>รหัสการ deploy:</strong> AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr</p>
-        </div>
-        
-        <div class="form-group">
-            <label for="customer">ชื่อลูกค้า <span style="color: var(--error)">*</span></label>
-            <input type="text" id="customer" placeholder="เช่น นายสมชาย ใจดี" required>
-        </div>
-        
-        <div class="form-group">
-            <label>ที่อยู่</label>
-            <div class="row">
-                <div>
-                    <input type="text" id="tambon" placeholder="ตำบล">
-                </div>
-                <div>
-                    <input type="text" id="amphoe" placeholder="อำเภอ">
-                </div>
-                <div>
-                    <input type="text" id="province" placeholder="จังหวัด">
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>พิกัดสถานที่</label>
-            <div class="row">
-                <div>
-                    <input type="text" id="lat" placeholder="ละติจูด">
-                </div>
-                <div>
-                    <input type="text" id="lng" placeholder="ลองจิจูด">
-                </div>
-            </div>
-            <button id="getLocation" class="btn-ghost" style="margin-top: 10px;">
-                <span id="location-loader" class="loading" style="display: none;"></span>
-                📍 รับตำแหน่งปัจจุบัน
-            </button>
-        </div>
-        
-        <div class="form-group">
-            <label for="mileage">ไมล์รถ (กม.)</label>
-            <input type="number" id="mileage" placeholder="เช่น 12345">
-        </div>
-        
-        <div class="form-group">
-            <label for="photos">รูปภาพหน้างาน (สามารถเลือกหลายรูปได้)</label>
-            <input type="file" id="photos" accept="image/*" multiple>
-            <div class="photo-preview" id="photoPreview"></div>
-        </div>
-        
-        <div class="form-group">
-            <button id="saveToDrive" class="btn-success">
-                <span id="save-loader" class="loading" style="display: none;"></span>
-                💾 บันทึกไปยัง Google Drive
-            </button>
-            <button id="resetForm" class="btn-ghost">🔄 ล้างฟอร์ม</button>
-        </div>
-        
-        <div id="statusMessage" class="status"></div>
-        
-        <div class="instructions">
-            <h3>📋 ข้อมูลการตั้งค่า</h3>
-            
-            <div class="step">
-                <p><strong>สคริปต์ได้ถูก deploy เรียบร้อยแล้ว</strong></p>
-                <p>Google Apps Script ถูก deploy แล้วและพร้อมรับข้อมูลจากฟอร์มนี้</p>
-            </div>
-            
-            <div class="step">
-                <p><strong>URL ของ Google Apps Script:</strong></p>
-                <div class="url-container">
-                    <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr/exec" readonly>
-                    <button id="copyUrl" class="btn-ghost">คัดลอก</button>
-                </div>
-            </div>
-            
-            <div class="step">
-                <p><strong>โฟลเดอร์ปลายทางใน Google Drive:</strong></p>
-                <p>ข้อมูลจะถูกบันทึกลงในโฟลเดอร์: <a href="https://drive.google.com/drive/folders/1t-js5eJAqD80mC6Bo5ujtRcxs7yKVAl4" target="_blank">งานหน้างาน (คลิกเพื่อเปิด)</a></p>
-            </div>
-        </div>
+  <div class="container">
+    <h1>ฟอร์มบันทึกหน้างาน (มือถือ)</h1>
+
+    <div class="card">
+      <label for="customer">ชื่อลูกค้า <span style="color:var(--error)">*</span></label>
+      <input id="customer" type="text" placeholder="เช่น นายสมชาย" required />
+      <div class="error-text" id="customer-error">กรุณากรอกชื่อลูกค้า</div>
+
+      <div style="height:8px"></div>
+
+      <label>ที่อยู่ (ตำบล, อำเภอ, จังหวัด)</label>
+      <div class="row">
+        <input id="tambon" type="text" placeholder="ตำบล" />
+        <input id="amphoe" type="text" placeholder="อำเภอ" />
+        <input id="province" type="text" placeholder="จังหวัด" />
+      </div>
+
+      <div style="height:8px"></div>
+
+      <label for="location">โลเคชัน (ละติจูด, ลองจิจูด)</label>
+      <div class="row">
+        <input id="lat" type="text" placeholder="ละติจูด" />
+        <input id="lng" type="text" placeholder="ลองจิจูด" />
+      </div>
+      <div style="height:6px"></div>
+      <button id="getLocation" class="btn small">
+        <span id="location-loader" class="loading" style="display:none"></span>
+        รับตำแหน่งปัจจุบัน
+      </button>
+
+      <div style="height:8px"></div>
+
+      <label for="mileage">ไมล์รถ (กม. / ไมล์)</label>
+      <input id="mileage" type="number" placeholder="เช่น 12345" min="0" />
+
+      <div style="height:8px"></div>
+
+      <label for="photos">รูปหน้างาน (แนบได้หลายรูป, สูงสุด 50 รูป)</label>
+      <input id="photos" type="file" accept="image/*" multiple />
+      <div class="error-text" id="photos-error">สามารถอัปโหลดได้สูงสุด 50 รูป</div>
+      <div class="photos-preview" id="preview"></div>
+      <div class="storage-info" id="storage-info">กำลังใช้พื้นที่: 0MB</div>
+
+      <div style="height:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="save" class="btn">บันทึก</button>
+        <button id="resetForm" class="btn ghost small">ล้างฟอร์ม</button>
+        <button id="exportJson" class="btn ghost small">Export JSON</button>
+      </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // ตั้งค่า URL ของ Google Apps Script
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr/exec";
-            document.getElementById('scriptUrl').value = scriptUrl;
-            
-            // คัดลอก URL
-            document.getElementById('copyUrl').addEventListener('click', function() {
-                const urlInput = document.getElementById('scriptUrl');
-                urlInput.select();
-                document.execCommand('copy');
-                showStatus('คัดลอก URL เรียบร้อยแล้ว', 'success');
+    <div class="card">
+      <h2 style="font-size:15px;margin:0 0 8px">รายการที่บันทึก</h2>
+      <ul id="saved" class="saved-list"></ul>
+      <div style="height:8px"></div>
+      <div style="display:flex;gap:8px">
+        <button id="downloadAll" class="btn small">ดาวน์โหลดทั้งหมด (JSON)</button>
+        <button id="clearAll" class="btn ghost small">ลบทั้งหมด</button>
+      </div>
+    </div>
+
+    <footer>เก็บข้อมูลลงเครื่อง (IndexedDB) — สามารถดาวน์โหลดไฟล์ JSON เพื่อนำไปใช้ต่อ</footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Helpers
+    const by = id => document.getElementById(id);
+    const preview = by('preview');
+    const photosInput = by('photos');
+    const MAX_PHOTOS = 50;
+    const DB_NAME = 'SiteLogsDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'siteLogs';
+
+    let db = null;
+    let currentFilesBase64 = [];
+
+    // ฟังก์ชันแสดงข้อความแจ้งเตือน
+    function showToast(message, duration = 3000) {
+      const toast = by('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    // เปิดการเชื่อมต่อกับ IndexedDB
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        
+        request.onupgradeneeded = (event) => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            const store = database.createObjectStore(STORE_NAME, { 
+              keyPath: 'id', 
+              autoIncrement: true 
             });
+            store.createIndex('createdAt', 'createdAt', { unique: false });
+          }
+        };
+      });
+    }
+
+    // บันทึกข้อมูล
+    async function saveEntry(entry) {
+      if (!db) db = await openDatabase();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.add(entry);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    // โหลดข้อมูลทั้งหมด
+    async function loadAllEntries() {
+      if (!db) db = await openDatabase();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const index = store.index('createdAt');
+        const request = index.getAll();
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    // ลบข้อมูลทั้งหมด
+    async function clearAllEntries() {
+      if (!db) db = await openDatabase();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.clear();
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve();
+      });
+    }
+
+    // ลบรายการเดียว
+    async function deleteEntry(id) {
+      if (!db) db = await openDatabase();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(id);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve();
+      });
+    }
+
+    // คำนวณพื้นที่ที่ใช้
+    function calculateStorageUsage(entries) {
+      const jsonString = JSON.stringify(entries);
+      const bytes = new Blob([jsonString]).size;
+      const megabytes = bytes / (1024 * 1024);
+      return megabytes.toFixed(2);
+    }
+
+    photosInput.addEventListener('change', async e => {
+      const files = Array.from(e.target.files || []);
+      
+      // ตรวจสอบจำนวนรูปภาพ
+      if (files.length > MAX_PHOTOS) {
+        by('photos-error').style.display = 'block';
+        photosInput.value = '';
+        return;
+      } else {
+        by('photos-error').style.display = 'none';
+      }
+      
+      preview.innerHTML = '';
+      currentFilesBase64 = [];
+      
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) continue;
+        
+        // บีบอัดภาพก่อนแปลงเป็น Base64
+        const b64 = await compressImage(f);
+        currentFilesBase64.push(b64);
+        const img = document.createElement('img');
+        img.src = b64;
+        preview.appendChild(img);
+      }
+    });
+
+    // บีบอัดภาพ
+    function compressImage(file, maxWidth = 1024, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
             
-            // รับตำแหน่งปัจจุบัน
-            document.getElementById('getLocation').addEventListener('click', function() {
-                if (!navigator.geolocation) {
-                    showStatus('เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง', 'error');
-                    return;
-                }
-                
-                const loader = document.getElementById('location-loader');
-                loader.style.display = 'inline-block';
-                document.getElementById('getLocation').disabled = true;
-                
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        loader.style.display = 'none';
-                        document.getElementById('getLocation').disabled = false;
-                        document.getElementById('lat').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('lng').value = position.coords.longitude.toFixed(6);
-                        showStatus('รับตำแหน่งเรียบร้อยแล้ว', 'success');
-                    },
-                    function(error) {
-                        loader.style.display = 'none';
-                        document.getElementById('getLocation').disabled = false;
-                        showStatus('ไม่สามารถรับตำแหน่งได้: ' + error.message, 'error');
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            });
-            
-            // แสดงภาพตัวอย่าง
-            document.getElementById('photos').addEventListener('change', function(e) {
-                const preview = document.getElementById('photoPreview');
-                preview.innerHTML = '';
-                
-                const files = e.target.files;
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if (!file.type.startsWith('image/')) continue;
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'photo-thumb';
-                        preview.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            // ล้างฟอร์ม
-            document.getElementById('resetForm').addEventListener('click', function() {
-                document.getElementById('customer').value = '';
-                document.getElementById('tambon').value = '';
-                document.getElementById('amphoe').value = '';
-                document.getElementById('province').value = '';
-                document.getElementById('lat').value = '';
-                document.getElementById('lng').value = '';
-                document.getElementById('mileage').value = '';
-                document.getElementById('photos').value = '';
-                document.getElementById('photoPreview').innerHTML = '';
-                document.getElementById('statusMessage').className = 'status';
-            });
-            
-            // บันทึกไปยัง Google Drive
-            document.getElementById('saveToDrive').addEventListener('click', async function() {
-                const customer = document.getElementById('customer').value.trim();
-                if (!customer) {
-                    showStatus('กรุณากรอกชื่อลูกค้า', 'error');
-                    return;
-                }
-                
-                // อ่านรูปภาพ
-                const photoFiles = document.getElementById('photos').files;
-                const photoPromises = [];
-                
-                for (let i = 0; i < photoFiles.length; i++) {
-                    const file = photoFiles[i];
-                    if (!file.type.startsWith('image/')) continue;
-                    
-                    photoPromises.push(new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            resolve(e.target.result);
-                        };
-                        reader.readAsDataURL(file);
-                    }));
-                }
-                
-                const photos = await Promise.all(photoPromises);
-                
-                // เตรียมข้อมูล
-                const data = {
-                    customer: customer,
-                    tambon: document.getElementById('tambon').value.trim(),
-                    amphoe: document.getElementById('amphoe').value.trim(),
-                    province: document.getElementById('province').value.trim(),
-                    lat: document.getElementById('lat').value.trim(),
-                    lng: document.getElementById('lng').value.trim(),
-                    mileage: document.getElementById('mileage').value.trim(),
-                    photos: photos,
-                    timestamp: new Date().toISOString()
-                };
-                
-                // ส่งข้อมูล
-                const loader = document.getElementById('save-loader');
-                loader.style.display = 'inline-block';
-                document.getElementById('saveToDrive').disabled = true;
-                
-                try {
-                    const response = await fetch(scriptUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.result === 'success') {
-                        showStatus('บันทึกข้อมูลไปยัง Google Drive เรียบร้อยแล้ว', 'success');
-                        document.getElementById('resetForm').click();
-                    } else {
-                        showStatus('เกิดข้อผิดพลาด: ' + result.message, 'error');
-                    }
-                } catch (error) {
-                    showStatus('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message, 'error');
-                } finally {
-                    loader.style.display = 'none';
-                    document.getElementById('saveToDrive').disabled = false;
-                }
-            });
-            
-            // แสดงสถานะ
-            function showStatus(message, type) {
-                const statusElement = document.getElementById('statusMessage');
-                statusElement.textContent = message;
-                statusElement.className = 'status ' + type;
-                
-                // ลบสถานะหลังจาก 5 วินาที
-                setTimeout(() => {
-                    statusElement.className = 'status';
-                }, 5000);
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
             }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Geolocation
+    by('getLocation').addEventListener('click', ()=>{
+      if (!navigator.geolocation) {
+        showToast('เบราว์เซอร์ไม่รองรับ Geolocation');
+        return;
+      }
+      
+      const loader = by('location-loader');
+      loader.style.display = 'inline-block';
+      by('getLocation').disabled = true;
+      
+      navigator.geolocation.getCurrentPosition(pos =>{
+        loader.style.display = 'none';
+        by('getLocation').disabled = false;
+        by('lat').value = pos.coords.latitude.toFixed(6);
+        by('lng').value = pos.coords.longitude.toFixed(6);
+        showToast('รับตำแหน่งสำเร็จ');
+      }, err => {
+        loader.style.display = 'none';
+        by('getLocation').disabled = false;
+        showToast('ไม่สามารถรับตำแหน่งได้: ' + err.message);
+      }, {enableHighAccuracy:true, timeout:10000});
+    });
+
+    async function renderSaved(){
+      const list = await loadAllEntries();
+      const ul = by('saved'); 
+      ul.innerHTML = '';
+      
+      if (!list.length) { 
+        ul.innerHTML = '<li class="meta">ยังไม่มีรายการที่บันทึก</li>'; 
+        by('storage-info').textContent = 'กำลังใช้พื้นที่: 0MB';
+        return; 
+      }
+      
+      // อัปเดตข้อมูลพื้นที่ที่ใช้
+      const storageUsage = calculateStorageUsage(list);
+      by('storage-info').textContent = `กำลังใช้พื้นที่: ${storageUsage}MB`;
+      
+      // แสดงเพียง 10 รายการล่าสุด
+      const displayList = list.slice().reverse().slice(0, 10);
+      
+      displayList.forEach((item, idx)=>{
+        const li = document.createElement('li'); 
+        li.className='saved-item card';
+        const d = new Date(item.createdAt);
+        li.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:600">${escapeHtml(item.customer||'-')}</div>
+              <div class="meta">${escapeHtml(item.tambon||'')} ${escapeHtml(item.amphoe||'')} ${escapeHtml(item.province||'')}</div>
+            </div>
+            <div style="text-align:right;font-size:12px;color:var(--muted)">${d.toLocaleString()}</div>
+          </div>
+          <div style="height:8px"></div>
+          <div class="meta">โลเคชัน: ${item.lat||'-'}, ${item.lng||'-'} • ไมล์: ${item.mileage||'-'}</div>
+        `;
+        
+        // thumbnails
+        if (item.photos && item.photos.length){
+          const wrap = document.createElement('div'); 
+          wrap.className='photos-preview';
+          item.photos.slice(0,6).forEach(p=>{ 
+            const i=document.createElement('img'); 
+            i.src=p; 
+            wrap.appendChild(i); 
+          });
+          li.appendChild(wrap);
+        }
+        
+        // actions
+        const actions = document.createElement('div'); 
+        actions.style.marginTop='8px';
+        
+        const btnExport = document.createElement('button'); 
+        btnExport.className='btn small ghost'; 
+        btnExport.textContent='Export';
+        btnExport.addEventListener('click', ()=> downloadObject(item, `entry-${d.getTime()}.json`));
+        
+        const btnDelete = document.createElement('button'); 
+        btnDelete.className='btn small ghost'; 
+        btnDelete.textContent='ลบรายการ';
+        btnDelete.addEventListener('click', async ()=>{
+          if (!confirm('ลบรายการนี้หรือไม่?')) return;
+          try {
+            await deleteEntry(item.id);
+            renderSaved();
+            showToast('ลบรายการสำเร็จ');
+          } catch (error) {
+            showToast('เกิดข้อผิดพลาดในการลบรายการ');
+            console.error(error);
+          }
         });
-    </script>
+        
+        actions.appendChild(btnExport); 
+        actions.appendChild(btnDelete);
+        li.appendChild(actions);
+        ul.appendChild(li);
+      });
+      
+      // แสดงข้อความหากมีรายการมากกว่า 10
+      if (list.length > 10) {
+        const moreLi = document.createElement('li');
+        moreLi.className = 'meta';
+        moreLi.textContent = `แสดง 10 รายการล่าสุดจากทั้งหมด ${list.length} รายการ`;
+        ul.appendChild(moreLi);
+      }
+    }
+
+    function escapeHtml(str){ 
+      return String(str||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); 
+    }
+
+    // ฟังก์ชันตรวจสอบความถูกต้องของฟอร์ม
+    function validateForm() {
+      let isValid = true;
+      
+      // ตรวจสอบชื่อลูกค้า
+      if (!by('customer').value.trim()) {
+        by('customer').classList.add('error');
+        by('customer-error').style.display = 'block';
+        isValid = false;
+      } else {
+        by('customer').classList.remove('error');
+        by('customer-error').style.display = 'none';
+      }
+      
+      return isValid;
+    }
+
+    // Save entry
+    by('save').addEventListener('click', async ()=>{
+      if (!validateForm()) {
+        showToast('กรุณากรอกข้อมูลให้ครบถ้วน');
+        return;
+      }
+      
+      const entry = {
+        customer: by('customer').value.trim(),
+        tambon: by('tambon').value.trim(),
+        amphoe: by('amphoe').value.trim(),
+        province: by('province').value.trim(),
+        lat: by('lat').value.trim(),
+        lng: by('lng').value.trim(),
+        mileage: by('mileage').value.trim(),
+        photos: currentFilesBase64.slice(),
+        createdAt: new Date().toISOString()
+      };
+      
+      try {
+        await saveEntry(entry);
+        renderSaved();
+        showToast('บันทึกสำเร็จ');
+        clearForm();
+      } catch (error) {
+        showToast('เกิดข้อผิดพลาดในการบันทึก');
+        console.error(error);
+      }
+    });
+
+    by('resetForm').addEventListener('click', ()=>{ 
+      if(confirm('ล้างฟอร์มหรือไม่?')) {
+        clearForm(); 
+        showToast('ล้างฟอร์มแล้ว');
+      }
+    });
+
+    function clearForm(){ 
+      by('customer').value=''; 
+      by('tambon').value=''; 
+      by('amphoe').value=''; 
+      by('province').value=''; 
+      by('lat').value=''; 
+      by('lng').value=''; 
+      by('mileage').value=''; 
+      photosInput.value=''; 
+      preview.innerHTML=''; 
+      currentFilesBase64 = []; 
+      
+      // ล้างสถานะ error
+      by('customer').classList.remove('error');
+      by('customer-error').style.display = 'none';
+      by('photos-error').style.display = 'none';
+    }
+
+    // Export & download helpers
+    function downloadObject(obj, filename){ 
+      const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); 
+      const url=URL.createObjectURL(blob); 
+      const a=document.createElement('a'); 
+      a.href=url; 
+      a.download=filename; 
+      a.click(); 
+      URL.revokeObjectURL(url); 
+    }
+
+    by('downloadAll').addEventListener('click', async ()=>{
+      try {
+        const arr = await loadAllEntries();
+        if(!arr.length){ 
+          showToast('ไม่มีข้อมูลที่จะดาวน์โหลด'); 
+          return; 
+        }
+        downloadObject(arr, `site-logs-${new Date().toISOString().slice(0,10)}.json`);
+        showToast('ดาวน์โหลดข้อมูลสำเร็จ');
+      } catch (error) {
+        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด');
+        console.error(error);
+      }
+    });
+
+    by('clearAll').addEventListener('click', async ()=>{
+      if(!confirm('ลบข้อมูลทั้งหมดออกจากเครื่องหรือไม่?')) return; 
+      try {
+        await clearAllEntries();
+        renderSaved();
+        showToast('ลบข้อมูลทั้งหมดแล้ว');
+      } catch (error) {
+        showToast('เกิดข้อผิดพลาดในการลบข้อมูล');
+        console.error(error);
+      }
+    });
+
+    by('exportJson').addEventListener('click', async ()=>{
+      try {
+        const arr = await loadAllEntries();
+        downloadObject(arr, `site-logs-${new Date().toISOString().slice(0,10)}.json`);
+        showToast('ส่งออกข้อมูลสำเร็จ');
+      } catch (error) {
+        showToast('เกิดข้อผิดพลาดในการส่งออกข้อมูล');
+        console.error(error);
+      }
+    });
+
+    // เริ่มต้นแอปพลิเคชัน
+    async function initApp() {
+      try {
+        db = await openDatabase();
+        renderSaved();
+      } catch (error) {
+        showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        console.error(error);
+      }
+    }
+
+    // initial render
+    initApp();
+  </script>
 </body>
 </html>
