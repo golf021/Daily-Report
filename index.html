@@ -6,7 +6,7 @@
   <title>แบบบันทึกหน้างาน (มือถือ)</title>
   <meta name="description" content="ฟอร์มบันทึกหน้างานสำหรับมือถือ — ชื่อลูกค้า, ที่อยู่, โลเคชัน, ไมล์รถ, รูปภาพ" />
   <style>
-    :root{--bg:#f7f8fb;--card:#ffffff;--accent:#0b76ef;--muted:#666;--error:#e53935}
+    :root{--bg:#f7f8fb;--card:#ffffff;--accent:#0b76ef;--muted:#666;--error:#e53935;--success:#43a047}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans',"Helvetica Neue",Arial;background:var(--bg);margin:0;padding:16px;color:#111}
     .container{max-width:760px;margin:0 auto}
@@ -21,9 +21,10 @@
     .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;transition:opacity 0.2s}
     .btn:disabled{opacity:0.6;cursor:not-allowed}
     .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,118,239,0.12)}
+    .btn.success{background:var(--success)}
     .small{font-size:13px;padding:8px 10px}
     .photos-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .photos-preview img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+    .photos-preview img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid #eee;cursor:pointer}
     .saved-list{list-style:none;padding:0;margin:0}
     .saved-item{padding:10px;border-bottom:1px solid #f1f3f6}
     .meta{font-size:12px;color:var(--muted)}
@@ -33,6 +34,22 @@
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 16px;border-radius:8px;z-index:1000;opacity:0;transition:opacity 0.3s}
     .toast.show{opacity:1}
     .storage-info{font-size:12px;color:var(--muted);margin-top:8px;text-align:right}
+    .pagination{display:flex;justify-content:center;gap:8px;margin-top:12px}
+    .pagination button{min-width:36px}
+    .search-box{margin-bottom:12px;position:relative}
+    .search-box input{padding-right:36px}
+    .search-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted)}
+    
+    /* Modal สำหรับแสดงรูปภาพ */
+    .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9)}
+    .modal-content{display:flex;justify-content:center;align-items:center;height:100%}
+    .modal-image{max-width:100%;max-height:80vh;object-fit:contain}
+    .modal-close{position:absolute;top:15px;right:15px;color:#fff;font-size:30px;font-weight:bold;cursor:pointer;z-index:1001}
+    .modal-nav{position:absolute;top:50%;transform:translateY(-50%);color:#fff;font-size:30px;cursor:pointer;z-index:1001;background:rgba(0,0,0,0.5);width:50px;height:50px;border-radius:50%;display:flex;justify-content:center;align-items:center}
+    .modal-prev{left:15px}
+    .modal-next{right:15px}
+    .modal-caption{position:absolute;bottom:20px;left:0;width:100%;text-align:center;color:#fff;font-size:16px}
+    
     @media (max-width:420px){body{padding:10px} .row{flex-direction:column}}
   </style>
 </head>
@@ -74,9 +91,9 @@
 
       <div style="height:8px"></div>
 
-      <label for="photos">รูปหน้างาน (แนบได้หลายรูป, สูงสุด 50 รูป)</label>
+      <label for="photos">รูปหน้างาน (แนบได้หลายรูป, สูงสุด 10 รูป)</label>
       <input id="photos" type="file" accept="image/*" multiple />
-      <div class="error-text" id="photos-error">สามารถอัปโหลดได้สูงสุด 50 รูป</div>
+      <div class="error-text" id="photos-error">สามารถอัปโหลดได้สูงสุด 10 รูป</div>
       <div class="photos-preview" id="preview"></div>
       <div class="storage-info" id="storage-info">กำลังใช้พื้นที่: 0MB</div>
 
@@ -90,7 +107,20 @@
 
     <div class="card">
       <h2 style="font-size:15px;margin:0 0 8px">รายการที่บันทึก</h2>
+      
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อลูกค้า หรือตำบล..." />
+        <div class="search-icon">🔍</div>
+      </div>
+      
       <ul id="saved" class="saved-list"></ul>
+      
+      <div class="pagination" id="pagination">
+        <button id="prevPage" class="btn ghost small">ก่อนหน้า</button>
+        <span id="pageInfo" style="padding:8px;font-size:13px">หน้า 1</span>
+        <button id="nextPage" class="btn ghost small">ถัดไป</button>
+      </div>
+      
       <div style="height:8px"></div>
       <div style="display:flex;gap:8px">
         <button id="downloadAll" class="btn small">ดาวน์โหลดทั้งหมด (JSON)</button>
@@ -101,6 +131,17 @@
     <footer>เก็บข้อมูลลงเครื่อง (IndexedDB) — สามารถดาวน์โหลดไฟล์ JSON เพื่อนำไปใช้ต่อ</footer>
   </div>
 
+  <!-- Modal สำหรับแสดงรูปภาพ -->
+  <div id="imageModal" class="modal">
+    <span class="modal-close">&times;</span>
+    <div class="modal-content">
+      <span class="modal-nav modal-prev">&#10094;</span>
+      <img class="modal-image" id="modalImage" src="" alt="">
+      <span class="modal-nav modal-next">&#10095;</span>
+      <div class="modal-caption" id="modalCaption"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -108,13 +149,24 @@
     const by = id => document.getElementById(id);
     const preview = by('preview');
     const photosInput = by('photos');
-    const MAX_PHOTOS = 50;
+    const MAX_PHOTOS = 10;
     const DB_NAME = 'SiteLogsDB';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const STORE_NAME = 'siteLogs';
 
     let db = null;
     let currentFilesBase64 = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+    let currentSearchTerm = '';
+    let allEntries = [];
+    
+    // ตัวแปรสำหรับจัดการ Modal รูปภาพ
+    let modal = by('imageModal');
+    let modalImg = by('modalImage');
+    let modalCaption = by('modalCaption');
+    let currentImageIndex = 0;
+    let currentModalImages = [];
 
     // ฟังก์ชันแสดงข้อความแจ้งเตือน
     function showToast(message, duration = 3000) {
@@ -143,6 +195,8 @@
               autoIncrement: true 
             });
             store.createIndex('createdAt', 'createdAt', { unique: false });
+            store.createIndex('customer', 'customer', { unique: false });
+            store.createIndex('tambon', 'tambon', { unique: false });
           }
         };
       });
@@ -174,6 +228,31 @@
         
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    // ค้นหาข้อมูล
+    async function searchEntries(searchTerm) {
+      if (!db) db = await openDatabase();
+      
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const results = request.result.filter(entry => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+              (entry.customer && entry.customer.toLowerCase().includes(searchLower)) ||
+              (entry.tambon && entry.tambon.toLowerCase().includes(searchLower)) ||
+              (entry.amphoe && entry.amphoe.toLowerCase().includes(searchLower)) ||
+              (entry.province && entry.province.toLowerCase().includes(searchLower))
+            );
+          });
+          resolve(results);
+        };
       });
     }
 
@@ -236,12 +315,13 @@
         currentFilesBase64.push(b64);
         const img = document.createElement('img');
         img.src = b64;
+        img.onclick = () => openModal([b64], 0);
         preview.appendChild(img);
       }
     });
 
     // บีบอัดภาพ
-    function compressImage(file, maxWidth = 1024, quality = 0.7) {
+    function compressImage(file, maxWidth = 800, quality = 0.6) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -296,88 +376,177 @@
       }, {enableHighAccuracy:true, timeout:10000});
     });
 
-    async function renderSaved(){
-      const list = await loadAllEntries();
-      const ul = by('saved'); 
-      ul.innerHTML = '';
+    // ฟังก์ชันเปิด Modal แสดงรูปภาพ
+    function openModal(images, index) {
+      currentModalImages = images;
+      currentImageIndex = index;
+      modal.style.display = "block";
+      modalImg.src = images[index];
+      modalCaption.textContent = `รูปที่ ${index + 1} จาก ${images.length}`;
       
-      if (!list.length) { 
-        ul.innerHTML = '<li class="meta">ยังไม่มีรายการที่บันทึก</li>'; 
-        by('storage-info').textContent = 'กำลังใช้พื้นที่: 0MB';
-        return; 
+      // ซ่อนปุ่มนำทางถ้ามีรูปภาพน้อยกว่า 2 รูป
+      document.querySelector('.modal-prev').style.display = images.length > 1 ? 'flex' : 'none';
+      document.querySelector('.modal-next').style.display = images.length > 1 ? 'flex' : 'none';
+    }
+
+    // ฟังก์ชันเปลี่ยนรูปภาพใน Modal
+    function changeImage(n) {
+      currentImageIndex += n;
+      
+      // ตรวจสอบขอบเขต
+      if (currentImageIndex >= currentModalImages.length) {
+        currentImageIndex = 0;
+      } else if (currentImageIndex < 0) {
+        currentImageIndex = currentModalImages.length - 1;
       }
       
-      // อัปเดตข้อมูลพื้นที่ที่ใช้
-      const storageUsage = calculateStorageUsage(list);
-      by('storage-info').textContent = `กำลังใช้พื้นที่: ${storageUsage}MB`;
-      
-      // แสดงเพียง 10 รายการล่าสุด
-      const displayList = list.slice().reverse().slice(0, 10);
-      
-      displayList.forEach((item, idx)=>{
-        const li = document.createElement('li'); 
-        li.className='saved-item card';
-        const d = new Date(item.createdAt);
-        li.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-weight:600">${escapeHtml(item.customer||'-')}</div>
-              <div class="meta">${escapeHtml(item.tambon||'')} ${escapeHtml(item.amphoe||'')} ${escapeHtml(item.province||'')}</div>
-            </div>
-            <div style="text-align:right;font-size:12px;color:var(--muted)">${d.toLocaleString()}</div>
-          </div>
-          <div style="height:8px"></div>
-          <div class="meta">โลเคชัน: ${item.lat||'-'}, ${item.lng||'-'} • ไมล์: ${item.mileage||'-'}</div>
-        `;
-        
-        // thumbnails
-        if (item.photos && item.photos.length){
-          const wrap = document.createElement('div'); 
-          wrap.className='photos-preview';
-          item.photos.slice(0,6).forEach(p=>{ 
-            const i=document.createElement('img'); 
-            i.src=p; 
-            wrap.appendChild(i); 
-          });
-          li.appendChild(wrap);
+      modalImg.src = currentModalImages[currentImageIndex];
+      modalCaption.textContent = `รูปที่ ${currentImageIndex + 1} จาก ${currentModalImages.length}`;
+    }
+
+    // ปิด Modal เมื่อคลิก outside รูปภาพ
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.className === 'modal-close') {
+        modal.style.display = "none";
+      }
+    });
+
+    // การจัดการการกดปุ่มนำทาง
+    document.querySelector('.modal-prev').addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeImage(-1);
+    });
+
+    document.querySelector('.modal-next').addEventListener('click', (e) => {
+      e.stopPropagation();
+      changeImage(1);
+    });
+
+    // การจัดการการกดปุ่ม keyboard
+    document.addEventListener('keydown', (e) => {
+      if (modal.style.display === "block") {
+        if (e.key === "ArrowLeft") {
+          changeImage(-1);
+        } else if (e.key === "ArrowRight") {
+          changeImage(1);
+        } else if (e.key === "Escape") {
+          modal.style.display = "none";
+        }
+      }
+    });
+
+    async function renderSaved(){
+      try {
+        // โหลดข้อมูลทั้งหมดหรือค้นหาข้อมูล
+        if (currentSearchTerm) {
+          allEntries = await searchEntries(currentSearchTerm);
+        } else {
+          allEntries = await loadAllEntries();
         }
         
-        // actions
-        const actions = document.createElement('div'); 
-        actions.style.marginTop='8px';
+        const ul = by('saved'); 
+        ul.innerHTML = '';
         
-        const btnExport = document.createElement('button'); 
-        btnExport.className='btn small ghost'; 
-        btnExport.textContent='Export';
-        btnExport.addEventListener('click', ()=> downloadObject(item, `entry-${d.getTime()}.json`));
+        if (!allEntries.length) { 
+          ul.innerHTML = '<li class="meta">ยังไม่มีรายการที่บันทึก</li>'; 
+          by('storage-info').textContent = 'กำลังใช้พื้นที่: 0MB';
+          by('pagination').style.display = 'none';
+          return; 
+        }
         
-        const btnDelete = document.createElement('button'); 
-        btnDelete.className='btn small ghost'; 
-        btnDelete.textContent='ลบรายการ';
-        btnDelete.addEventListener('click', async ()=>{
-          if (!confirm('ลบรายการนี้หรือไม่?')) return;
-          try {
-            await deleteEntry(item.id);
-            renderSaved();
-            showToast('ลบรายการสำเร็จ');
-          } catch (error) {
-            showToast('เกิดข้อผิดพลาดในการลบรายการ');
-            console.error(error);
+        // อัปเดตข้อมูลพื้นที่ที่ใช้
+        const storageUsage = calculateStorageUsage(allEntries);
+        by('storage-info').textContent = `กำลังใช้พื้นที่: ${storageUsage}MB`;
+        
+        // แสดง pagination
+        by('pagination').style.display = 'flex';
+        const totalPages = Math.ceil(allEntries.length / itemsPerPage);
+        by('pageInfo').textContent = `หน้า ${currentPage} จาก ${totalPages}`;
+        
+        // ปุ่ม pagination
+        by('prevPage').disabled = currentPage === 1;
+        by('nextPage').disabled = currentPage === totalPages;
+        
+        // แสดงรายการตามหน้า
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, allEntries.length);
+        const displayList = allEntries.slice().reverse().slice(startIndex, endIndex);
+        
+        displayList.forEach((item)=>{
+          const li = document.createElement('li'); 
+          li.className='saved-item card';
+          const d = new Date(item.createdAt);
+          li.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:600">${escapeHtml(item.customer||'-')}</div>
+                <div class="meta">${escapeHtml(item.tambon||'')} ${escapeHtml(item.amphoe||'')} ${escapeHtml(item.province||'')}</div>
+              </div>
+              <div style="text-align:right;font-size:12px;color:var(--muted)">${d.toLocaleString('th-TH')}</div>
+            </div>
+            <div style="height:8px"></div>
+            <div class="meta">โลเคชัน: ${item.lat||'-'}, ${item.lng||'-'} • ไมล์: ${item.mileage||'-'}</div>
+          `;
+          
+          // thumbnails
+          if (item.photos && item.photos.length){
+            const wrap = document.createElement('div'); 
+            wrap.className='photos-preview';
+            item.photos.slice(0,4).forEach((p, idx)=>{ 
+              const i=document.createElement('img'); 
+              i.src=p; 
+              i.onclick = () => openModal(item.photos, idx);
+              wrap.appendChild(i); 
+            });
+            li.appendChild(wrap);
           }
+          
+          // actions
+          const actions = document.createElement('div'); 
+          actions.style.marginTop='8px';
+          actions.style.display = 'flex';
+          actions.style.gap = '8px';
+          actions.style.flexWrap = 'wrap';
+          
+          const btnView = document.createElement('button'); 
+          btnView.className='btn small ghost'; 
+          btnView.textContent='ดูรูปภาพ';
+          btnView.disabled = !item.photos || item.photos.length === 0;
+          btnView.addEventListener('click', ()=> {
+            if (item.photos && item.photos.length) {
+              openModal(item.photos, 0);
+            }
+          });
+          
+          const btnExport = document.createElement('button'); 
+          btnExport.className='btn small ghost'; 
+          btnExport.textContent='Export';
+          btnExport.addEventListener('click', ()=> downloadObject(item, `entry-${d.getTime()}.json`));
+          
+          const btnDelete = document.createElement('button'); 
+          btnDelete.className='btn small ghost'; 
+          btnDelete.textContent='ลบรายการ';
+          btnDelete.addEventListener('click', async ()=>{
+            if (!confirm('ลบรายการนี้หรือไม่?')) return;
+            try {
+              await deleteEntry(item.id);
+              renderSaved();
+              showToast('ลบรายการสำเร็จ');
+            } catch (error) {
+              showToast('เกิดข้อผิดพลาดในการลบรายการ');
+              console.error(error);
+            }
+          });
+          
+          actions.appendChild(btnView);
+          actions.appendChild(btnExport); 
+          actions.appendChild(btnDelete);
+          li.appendChild(actions);
+          ul.appendChild(li);
         });
-        
-        actions.appendChild(btnExport); 
-        actions.appendChild(btnDelete);
-        li.appendChild(actions);
-        ul.appendChild(li);
-      });
-      
-      // แสดงข้อความหากมีรายการมากกว่า 10
-      if (list.length > 10) {
-        const moreLi = document.createElement('li');
-        moreLi.className = 'meta';
-        moreLi.textContent = `แสดง 10 รายการล่าสุดจากทั้งหมด ${list.length} รายการ`;
-        ul.appendChild(moreLi);
+      } catch (error) {
+        console.error('Error rendering saved entries:', error);
+        showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล');
       }
     }
 
@@ -397,6 +566,20 @@
       } else {
         by('customer').classList.remove('error');
         by('customer-error').style.display = 'none';
+      }
+      
+      // ตรวจสอบความถูกต้องของพิกัด (ถ้ามี)
+      const lat = by('lat').value.trim();
+      const lng = by('lng').value.trim();
+      
+      if (lat && isNaN(parseFloat(lat))) {
+        showToast('ละติจูดไม่ถูกต้อง');
+        isValid = false;
+      }
+      
+      if (lng && isNaN(parseFloat(lng))) {
+        showToast('ลองจิจูดไม่ถูกต้อง');
+        isValid = false;
       }
       
       return isValid;
@@ -422,6 +605,10 @@
       };
       
       try {
+        // แสดงสถานะกำลังบันทึก
+        by('save').innerHTML = '<span class="loading"></span> กำลังบันทึก...';
+        by('save').disabled = true;
+        
         await saveEntry(entry);
         renderSaved();
         showToast('บันทึกสำเร็จ');
@@ -429,6 +616,9 @@
       } catch (error) {
         showToast('เกิดข้อผิดพลาดในการบันทึก');
         console.error(error);
+      } finally {
+        by('save').innerHTML = 'บันทึก';
+        by('save').disabled = false;
       }
     });
 
@@ -484,7 +674,7 @@
     });
 
     by('clearAll').addEventListener('click', async ()=>{
-      if(!confirm('ลบข้อมูลทั้งหมดออกจากเครื่องหรือไม่?')) return; 
+      if(!confirm('ลบข้อมูลทั้งหมดออกจากเครื่องหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) return; 
       try {
         await clearAllEntries();
         renderSaved();
@@ -504,6 +694,34 @@
         showToast('เกิดข้อผิดพลาดในการส่งออกข้อมูล');
         console.error(error);
       }
+    });
+
+    // การจัดการ Pagination
+    by('prevPage').addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderSaved();
+      }
+    });
+
+    by('nextPage').addEventListener('click', () => {
+      const totalPages = Math.ceil(allEntries.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderSaved();
+      }
+    });
+
+    // การค้นหา
+    by('searchInput').addEventListener('input', (e) => {
+      currentSearchTerm = e.target.value.trim();
+      currentPage = 1; // รีเซ็ตไปที่หน้าแรกเมื่อค้นหา
+      
+      // Debounce การค้นหาเพื่อประสิทธิภาพ
+      clearTimeout(by('searchInput').timeout);
+      by('searchInput').timeout = setTimeout(() => {
+        renderSaved();
+      }, 300);
     });
 
     // เริ่มต้นแอปพลิเคชัน
