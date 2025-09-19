@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกข้อมูลหน้างานไปยัง Google Drive</title>
+    <style>
+        :root {
+            --primary: #4285F4;
+            --secondary: #34A853;
+            --accent: #FBBC05;
+            --error: #EA4335;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Sukhumvit Set', 'Kanit', 'Sarabun', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        input[type="text"], 
+        input[type="number"], 
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .row > div {
+            flex: 1;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #a8c7fa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-ghost:hover {
+            background: #f1f3f4;
+        }
+        
+        .btn-success {
+            background: var(--secondary);
+        }
+        
+        .btn-success:hover {
+            background: #2d954a;
+        }
+        
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .photo-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s;
+        }
+        
+        .photo-thumb:hover {
+            transform: scale(1.05);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #e6f4ea;
+            color: #137333;
+            border: 1px solid #b6e3c2;
+            display: block;
+        }
+        
+        .status.error {
+            background: #fce8e6;
+            color: #c5221f;
+            border: 1px solid #f5b5b2;
+            display: block;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        
+        .url-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .url-container input {
+            flex: 1;
+        }
+        
+        .deployed-info {
+            background: #e6f4ea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .url-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>บันทึกข้อมูลหน้างานไปยัง Google Drive</h1>
+        <p class="subtitle">ฟอร์มบันทึกข้อมูลหน้างานพร้อมอัพโหลดรูปภาพไปยัง Google Drive</p>
+        
+        <div class="deployed-info">
+            <h3>✅ การตั้งค่าเรียบร้อยแล้ว</h3>
+            <p>แอปพลิเคชันนี้ได้ถูก deploy เรียบร้อยแล้วและพร้อมใช้งาน</p>
+            <p><strong>รหัสการ deploy:</strong> AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="customer">ชื่อลูกค้า <span style="color: var(--error)">*</span></label>
+            <input type="text" id="customer" placeholder="เช่น นายสมชาย ใจดี" required>
+        </div>
+        
+        <div class="form-group">
+            <label>ที่อยู่</label>
+            <div class="row">
+                <div>
+                    <input type="text" id="tambon" placeholder="ตำบล">
+                </div>
+                <div>
+                    <input type="text" id="amphoe" placeholder="อำเภอ">
+                </div>
+                <div>
+                    <input type="text" id="province" placeholder="จังหวัด">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>พิกัดสถานที่</label>
+            <div class="row">
+                <div>
+                    <input type="text" id="lat" placeholder="ละติจูด">
+                </div>
+                <div>
+                    <input type="text" id="lng" placeholder="ลองจิจูด">
+                </div>
+            </div>
+            <button id="getLocation" class="btn-ghost" style="margin-top: 10px;">
+                <span id="location-loader" class="loading" style="display: none;"></span>
+                📍 รับตำแหน่งปัจจุบัน
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label for="mileage">ไมล์รถ (กม.)</label>
+            <input type="number" id="mileage" placeholder="เช่น 12345">
+        </div>
+        
+        <div class="form-group">
+            <label for="photos">รูปภาพหน้างาน (สามารถเลือกหลายรูปได้)</label>
+            <input type="file" id="photos" accept="image/*" multiple>
+            <div class="photo-preview" id="photoPreview"></div>
+        </div>
+        
+        <div class="form-group">
+            <button id="saveToDrive" class="btn-success">
+                <span id="save-loader" class="loading" style="display: none;"></span>
+                💾 บันทึกไปยัง Google Drive
+            </button>
+            <button id="resetForm" class="btn-ghost">🔄 ล้างฟอร์ม</button>
+        </div>
+        
+        <div id="statusMessage" class="status"></div>
+        
+        <div class="instructions">
+            <h3>📋 ข้อมูลการตั้งค่า</h3>
+            
+            <div class="step">
+                <p><strong>สคริปต์ได้ถูก deploy เรียบร้อยแล้ว</strong></p>
+                <p>Google Apps Script ถูก deploy แล้วและพร้อมรับข้อมูลจากฟอร์มนี้</p>
+            </div>
+            
+            <div class="step">
+                <p><strong>URL ของ Google Apps Script:</strong></p>
+                <div class="url-container">
+                    <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr/exec" readonly>
+                    <button id="copyUrl" class="btn-ghost">คัดลอก</button>
+                </div>
+            </div>
+            
+            <div class="step">
+                <p><strong>โฟลเดอร์ปลายทางใน Google Drive:</strong></p>
+                <p>ข้อมูลจะถูกบันทึกลงในโฟลเดอร์: <a href="https://drive.google.com/drive/folders/1t-js5eJAqD80mC6Bo5ujtRcxs7yKVAl4" target="_blank">งานหน้างาน (คลิกเพื่อเปิด)</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ตั้งค่า URL ของ Google Apps Script
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbxw7bxmCC1DWd0m2ZNR5OZFGu7Cef6mR75DUkLf-f4g7xfAHotrTon5c-sJjyfsbCmr/exec";
+            document.getElementById('scriptUrl').value = scriptUrl;
+            
+            // คัดลอก URL
+            document.getElementById('copyUrl').addEventListener('click', function() {
+                const urlInput = document.getElementById('scriptUrl');
+                urlInput.select();
+                document.execCommand('copy');
+                showStatus('คัดลอก URL เรียบร้อยแล้ว', 'success');
+            });
+            
+            // รับตำแหน่งปัจจุบัน
+            document.getElementById('getLocation').addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    showStatus('เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง', 'error');
+                    return;
+                }
+                
+                const loader = document.getElementById('location-loader');
+                loader.style.display = 'inline-block';
+                document.getElementById('getLocation').disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        loader.style.display = 'none';
+                        document.getElementById('getLocation').disabled = false;
+                        document.getElementById('lat').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('lng').value = position.coords.longitude.toFixed(6);
+                        showStatus('รับตำแหน่งเรียบร้อยแล้ว', 'success');
+                    },
+                    function(error) {
+                        loader.style.display = 'none';
+                        document.getElementById('getLocation').disabled = false;
+                        showStatus('ไม่สามารถรับตำแหน่งได้: ' + error.message, 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            });
+            
+            // แสดงภาพตัวอย่าง
+            document.getElementById('photos').addEventListener('change', function(e) {
+                const preview = document.getElementById('photoPreview');
+                preview.innerHTML = '';
+                
+                const files = e.target.files;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file.type.startsWith('image/')) continue;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'photo-thumb';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // ล้างฟอร์ม
+            document.getElementById('resetForm').addEventListener('click', function() {
+                document.getElementById('customer').value = '';
+                document.getElementById('tambon').value = '';
+                document.getElementById('amphoe').value = '';
+                document.getElementById('province').value = '';
+                document.getElementById('lat').value = '';
+                document.getElementById('lng').value = '';
+                document.getElementById('mileage').value = '';
+                document.getElementById('photos').value = '';
+                document.getElementById('photoPreview').innerHTML = '';
+                document.getElementById('statusMessage').className = 'status';
+            });
+            
+            // บันทึกไปยัง Google Drive
+            document.getElementById('saveToDrive').addEventListener('click', async function() {
+                const customer = document.getElementById('customer').value.trim();
+                if (!customer) {
+                    showStatus('กรุณากรอกชื่อลูกค้า', 'error');
+                    return;
+                }
+                
+                // อ่านรูปภาพ
+                const photoFiles = document.getElementById('photos').files;
+                const photoPromises = [];
+                
+                for (let i = 0; i < photoFiles.length; i++) {
+                    const file = photoFiles[i];
+                    if (!file.type.startsWith('image/')) continue;
+                    
+                    photoPromises.push(new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            resolve(e.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    }));
+                }
+                
+                const photos = await Promise.all(photoPromises);
+                
+                // เตรียมข้อมูล
+                const data = {
+                    customer: customer,
+                    tambon: document.getElementById('tambon').value.trim(),
+                    amphoe: document.getElementById('amphoe').value.trim(),
+                    province: document.getElementById('province').value.trim(),
+                    lat: document.getElementById('lat').value.trim(),
+                    lng: document.getElementById('lng').value.trim(),
+                    mileage: document.getElementById('mileage').value.trim(),
+                    photos: photos,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // ส่งข้อมูล
+                const loader = document.getElementById('save-loader');
+                loader.style.display = 'inline-block';
+                document.getElementById('saveToDrive').disabled = true;
+                
+                try {
+                    const response = await fetch(scriptUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.result === 'success') {
+                        showStatus('บันทึกข้อมูลไปยัง Google Drive เรียบร้อยแล้ว', 'success');
+                        document.getElementById('resetForm').click();
+                    } else {
+                        showStatus('เกิดข้อผิดพลาด: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    showStatus('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message, 'error');
+                } finally {
+                    loader.style.display = 'none';
+                    document.getElementById('saveToDrive').disabled = false;
+                }
+            });
+            
+            // แสดงสถานะ
+            function showStatus(message, type) {
+                const statusElement = document.getElementById('statusMessage');
+                statusElement.textContent = message;
+                statusElement.className = 'status ' + type;
+                
+                // ลบสถานะหลังจาก 5 วินาที
+                setTimeout(() => {
+                    statusElement.className = 'status';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>
