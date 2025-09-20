@@ -103,11 +103,6 @@
       <div class="photos-preview" id="preview"></div>
       <div class="storage-info" id="storage-info">กำลังใช้พื้นที่: 0MB</div>
 
-      <div style="height:10px"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button id="save" class="btn">บันทึก</button>
-        <button id="resetForm" class="btn ghost small">ล้างฟอร์ม</button>
-        <button id="exportJson" class="btn ghost small">Export JSON</button>
       </div>
     </div>
 
@@ -700,17 +695,6 @@
         showToast('ลบข้อมูลทั้งหมดแล้ว');
       } catch (error) {
         showToast('เกิดข้อผิดพลาดในการลบข้อมูล');
-        console.error(error);
-      }
-    });
-
-    by('exportJson').addEventListener('click', async ()=>{
-      try {
-        const arr = await loadAllEntries();
-        downloadObject(arr, `site-logs-${new Date().toISOString().slice(0,10)}.json`);
-        showToast('ส่งออกข้อมูลสำเร็จ');
-      } catch (error) {
-        showToast('เกิดข้อผิดพลาดในการส่งออกข้อมูล');
         console.error(error);
       }
     });
