@@ -103,6 +103,10 @@
       <div class="photos-preview" id="preview"></div>
       <div class="storage-info" id="storage-info">กำลังใช้พื้นที่: 0MB</div>
 
+      <div style="height:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="save" class="btn">บันทึก</button>
+        <button id="resetForm" class="btn ghost small">ล้างฟอร์ม</button>
       </div>
     </div>
 
@@ -530,11 +534,6 @@
             }
           });
           
-          const btnExport = document.createElement('button'); 
-          btnExport.className='btn small ghost'; 
-          btnExport.textContent='Export';
-          btnExport.addEventListener('click', ()=> downloadObject(item, `entry-${d.getTime()}.json`));
-          
           const btnDelete = document.createElement('button'); 
           btnDelete.className='btn small ghost'; 
           btnDelete.textContent='ลบรายการ';
@@ -551,7 +550,6 @@
           });
           
           actions.appendChild(btnView);
-          actions.appendChild(btnExport); 
           actions.appendChild(btnDelete);
           li.appendChild(actions);
           ul.appendChild(li);
@@ -566,7 +564,7 @@
       return String(str||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); 
     }
 
-    // ฟังก์ชันตรวจสอบความถูกต้องของฟอร์ม
+    // ฟังก์ชันตรวจสอบความถูกต้องของฟอร์м
     function validateForm() {
       let isValid = true;
       
