@@ -91,6 +91,12 @@
 
       <div style="height:8px"></div>
 
+      <!-- เพิ่มช่องหมายเหตุในฟอร์ม -->
+      <label for="note">หมายเหตุ / รายละเอียดงาน</label>
+      <textarea id="note" rows="3" placeholder="รายละเอียดงาน..."></textarea>
+
+      <div style="height:8px"></div>
+
       <label for="photos">รูปหน้างาน (แนบได้หลายรูป, สูงสุด 10 รูป)</label>
       <input id="photos" type="file" accept="image/*" multiple />
       <div class="error-text" id="photos-error">สามารถอัปโหลดได้สูงสุด 10 รูป</div>
@@ -248,7 +254,8 @@
               (entry.customer && entry.customer.toLowerCase().includes(searchLower)) ||
               (entry.tambon && entry.tambon.toLowerCase().includes(searchLower)) ||
               (entry.amphoe && entry.amphoe.toLowerCase().includes(searchLower)) ||
-              (entry.province && entry.province.toLowerCase().includes(searchLower))
+              (entry.province && entry.province.toLowerCase().includes(searchLower)) ||
+              (entry.note && entry.note.toLowerCase().includes(searchLower))
             );
           });
           resolve(results);
@@ -488,6 +495,16 @@
             <div class="meta">โลเคชัน: ${item.lat||'-'}, ${item.lng||'-'} • ไมล์: ${item.mileage||'-'}</div>
           `;
           
+          // แสดงหมายเหตุถ้ามี
+          if (item.note) {
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'meta';
+            noteDiv.style.marginTop = '6px';
+            noteDiv.style.fontStyle = 'italic';
+            noteDiv.textContent = `หมายเหตุ: ${escapeHtml(item.note)}`;
+            li.appendChild(noteDiv);
+          }
+          
           // thumbnails
           if (item.photos && item.photos.length){
             const wrap = document.createElement('div'); 
@@ -600,6 +617,7 @@
         lat: by('lat').value.trim(),
         lng: by('lng').value.trim(),
         mileage: by('mileage').value.trim(),
+        note: by('note').value.trim(), // เพิ่มฟิลด์หมายเหตุ
         photos: currentFilesBase64.slice(),
         createdAt: new Date().toISOString()
       };
@@ -637,6 +655,7 @@
       by('lat').value=''; 
       by('lng').value=''; 
       by('mileage').value=''; 
+      by('note').value=''; // ล้างช่องหมายเหตุ
       photosInput.value=''; 
       preview.innerHTML=''; 
       currentFilesBase64 = []; 
